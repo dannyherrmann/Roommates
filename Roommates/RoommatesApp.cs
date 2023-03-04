@@ -55,6 +55,7 @@ public class RoommatesApp
             }
         }
     }
+    
     static string GetSpectreSelection()
     {
         Console.Clear();
@@ -84,6 +85,7 @@ public class RoommatesApp
 
         return spectreSelection;
     }
+    
     public void ShowAllRooms()
     {
         List<Room> rooms = roomRepo.GetAll();
