@@ -45,4 +45,68 @@ public class RoommateRepository : BaseRepository
             }
         }
     }
+
+    public List<Roommate> GetAllRoommates()
+    {
+        using (var conn = Connection)
+        {
+            conn.Open();
+
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "select rm.Id, rm.FirstName, rm.LastName, rm.RentPortion, rm.MoveInDate, rm.RoomId, r.Name as RoomName, r.MaxOccupancy from Roommate rm join Room r on r.Id = rm.RoomId";
+
+                var reader = cmd.ExecuteReader();
+
+                List<Roommate> roommates = new List<Roommate>();
+
+                while(reader.Read())
+                {
+                    int idColumnPosition = reader.GetOrdinal("Id");
+                    int idValue = reader.GetInt32(idColumnPosition);
+
+                    int firstNameColumnPosition = reader.GetOrdinal("FirstName");
+                    string firstNameValue = reader.GetString(firstNameColumnPosition);
+
+                    int lastNameColumnPosition = reader.GetOrdinal("LastName");
+                    string lastNameValue = reader.GetString(lastNameColumnPosition);
+
+                    int rentPortionPosition = reader.GetOrdinal("RentPortion");
+                    int rentPortionValue = reader.GetInt32(rentPortionPosition);
+
+                    int moveInDatePosition = reader.GetOrdinal("MoveInDate");
+                    DateTime moveInDateTimeValue = reader.GetDateTime(moveInDatePosition);
+
+                    int roomIdPosition = reader.GetOrdinal("RoomId");
+                    int roomIdValue = reader.GetInt32(roomIdPosition);
+
+                    int roomNamePosition = reader.GetOrdinal("RoomName");
+                    string roomNameValue = reader.GetString(roomNamePosition);
+
+                    int maxOccupancyPosition = reader.GetOrdinal("MaxOccupancy");
+                    int maxOccupancyValue = reader.GetInt32(maxOccupancyPosition);
+
+                    Roommate roommate = new Roommate()
+                    {
+                        Id = idValue,
+                        FirstName = firstNameValue,
+                        LastName = lastNameValue,
+                        RentPortion = rentPortionValue,
+                        MovedInDate = moveInDateTimeValue,
+                        Room = new Room
+                        {
+                            Id = roomIdValue,
+                            Name = roomNameValue,
+                            MaxOccupancy = maxOccupancyValue
+                        }
+                    };
+
+                    roommates.Add(roommate);
+                }
+
+                reader.Close();
+                return roommates;
+            }
+        }
+    }
 }

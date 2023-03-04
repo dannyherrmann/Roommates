@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.VisualBasic.FileIO;
 using Roommates.Models;
 using System;
 using System.Collections.Generic;
@@ -129,6 +130,25 @@ public class ChoreRepository : BaseRepository
                 }
             }
             return chores;
+        }
+    }
+
+    //Next create a method in the ChoreRepository named AssignChore.
+    //It should accept 2 parameters--a roommateId and a choreId.
+
+    public void AssignChore(RoommateChore roommateChore)
+    {
+        using (var conn = Connection)
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"insert into RoommateChore (RoommateId, ChoreId) values (@roommateId, @choreId)";
+                cmd.Parameters.AddWithValue("@roommateId", roommateChore.RoommateId);
+                cmd.Parameters.AddWithValue("@choreId", roommateChore.ChoreId);
+
+                cmd.ExecuteNonQuery(); 
+            }
         }
     }
 }

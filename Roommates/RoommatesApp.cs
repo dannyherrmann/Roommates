@@ -22,9 +22,9 @@ public class RoommatesApp
 
         while (runProgram)
         {
-            string selection = GetSpectreSelection();
+            string spectreSelection = GetSpectreSelection();
 
-            switch (selection)
+            switch (spectreSelection)
             {
                 case ("Show all rooms"):
                     ShowAllRooms();
@@ -47,31 +47,43 @@ public class RoommatesApp
                 case ("Find roommate"):
                     FindRoommate();
                     break;
-                case ("Get Unassigned Chores"):
-                    GetUnassignedChores();
+                case ("Assign Unassigned Chores"):
+                    AssignUnassignedChore();
+                    break;
+                case ("Assign chore to roommate"):
+                    AssignChore();
                     break;
                 case ("Exit"):
                     runProgram = false;
                     break;
             }
         }
+
+        Console.Clear();
+
+        AnsiConsole.Write(
+            new FigletText("Goodbye!")
+            .Centered()
+            .Color(Color.Aquamarine1));
+
     }
-    
+
     static string GetSpectreSelection()
     {
         Console.Clear();
 
-        Console.Title = "Roommates";
+        Console.Title = "ROOMIES";
 
         AnsiConsole.Write(
-            new FigletText("Roommates")
+            new FigletText("ROOMIES")
             .LeftJustified()
             .Color(Color.Aquamarine1));
 
         var spectreSelection = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
-            .Title("Options")
+            .Title("Menu Options:")
             .PageSize(10)
+            .HighlightStyle("deeppink2")
             .AddChoices(new[] {
                     "Show all rooms",
                     "Search for room",
@@ -80,7 +92,8 @@ public class RoommatesApp
                     "Search for a chore",
                     "Add a chore",
                     "Find roommate",
-                    "Get Unassigned Chores",
+                    "Assign Unassigned Chores",
+                    "Assign chore to roommate",
                     "Exit"
             }));
 
@@ -185,14 +198,87 @@ Room Name: {roommate.Room.Name}");
         Console.ReadKey();
     }
 
-    public void GetUnassignedChores()
+    public string UnassignedChoresPrompt()
     {
         List<Chore> unassignedChores = choreRepo.GetUnassignedChores();
+        
+        var prompt = new SelectionPrompt<string>()
+            .Title("Select unassigned chore:")
+            .PageSize(10)
+            .HighlightStyle("deeppink2");
+
         foreach (Chore unassignedChore in unassignedChores)
         {
-            Console.WriteLine($"{unassignedChore.Name}");
+            prompt.AddChoices(new[] { $"{unassignedChore.Id}-{unassignedChore.Name}" });
         }
-        Console.Write("Press any key to continue");
+        return AnsiConsole.Prompt(prompt);
+    }
+
+    public string ChorePrompt()
+    {
+        List<Chore> chores = choreRepo.GetAll();
+
+        var prompt = new SelectionPrompt<string>()
+            .Title("Select a chore:")
+            .PageSize(10)
+            .HighlightStyle("deeppink2");
+
+        foreach (Chore chore in chores)
+        {
+            prompt.AddChoices(new[] { $"{chore.Id}-{chore.Name}" });
+        }
+
+        return AnsiConsole.Prompt(prompt);
+    }
+
+    public string RoommatePrompt()
+    {
+        List<Roommate> roommates = roommateRepo.GetAllRoommates();
+
+        var prompt = new SelectionPrompt<string>()
+            .Title("Select a roommate:")
+            .PageSize(10)
+            .HighlightStyle("deeppink2");
+
+        foreach (Roommate roommate in roommates)
+        {
+            prompt.AddChoices(new[] { $"{roommate.Id}-{roommate.FirstName}" });
+        }
+
+        return AnsiConsole.Prompt(prompt);
+    }
+
+    public void AssignChore()
+    {
+        var choreSelection = ChorePrompt();
+        var choreIdString = choreSelection.Split('-')[0];
+        var choreId = Convert.ToInt32(choreIdString);
+        Console.Clear();
+        var roommateSelection = RoommatePrompt();
+        var roommateIdString = roommateSelection.Split('-')[0];
+        var roommateId = Convert.ToInt32(roommateIdString);
+        choreRepo.AssignChore(new RoommateChore { RoommateId = roommateId, ChoreId = choreId });
+        Console.Clear();
+        Console.WriteLine($"{roommateRepo.GetById(roommateId)?.FirstName} has been assigned --> {choreRepo.GetById(choreId).Name}");
+        Console.WriteLine();
+        Console.Write("Press any key to return to the main menu");
+        Console.ReadKey();
+    }
+
+    public void AssignUnassignedChore()
+    {
+        var unassignedChoreSelection = UnassignedChoresPrompt();
+        var unassignedChoreIdString = unassignedChoreSelection.Split('-')[0];
+        var unassignedChoreId = Convert.ToInt32(unassignedChoreIdString);
+        Console.Clear();
+        var roommateSelection = RoommatePrompt();
+        var roommateIdString = roommateSelection.Split('-')[0];
+        var roommateId = Convert.ToInt32(roommateIdString);
+        choreRepo.AssignChore(new RoommateChore { RoommateId = roommateId, ChoreId = unassignedChoreId });
+        Console.Clear();
+        Console.WriteLine($"{roommateRepo.GetById(roommateId)?.FirstName} has been assigned --> {choreRepo.GetById(unassignedChoreId).Name}");
+        Console.WriteLine();
+        Console.Write("Press any key to return to the main menu");
         Console.ReadKey();
     }
 }
